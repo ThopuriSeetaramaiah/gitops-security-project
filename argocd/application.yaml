@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/yourusername/gitops-security-project.git  # Replace with your actual repo URL
+    repoURL: https://github.com/ThopuriSeetaramaiah/gitops-security-project.git
     targetRevision: HEAD
     path: manifests
   destination:
