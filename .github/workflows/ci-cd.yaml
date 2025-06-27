@@ -1,0 +1,63 @@
+name: CI/CD Pipeline with Security Scanning
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install KubeSec
+        run: |
+          curl -sSL https://github.com/controlplaneio/kubesec/releases/download/v2.11.4/kubesec_linux_amd64.tar.gz | tar -xz
+          chmod +x kubesec
+          sudo mv kubesec /usr/local/bin/
+
+      - name: Run KubeSec scan
+        run: |
+          for file in manifests/*.yaml; do
+            kubesec scan "$file"
+          done
+
+      - name: Install Trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+
+      - name: Extract image names
+        id: extract-images
+        run: |
+          IMAGES=$(grep -r "image:" manifests/ | awk '{print $2}' | sort | uniq)
+          echo "images=$IMAGES" >> $GITHUB_OUTPUT
+
+      - name: Scan images with Trivy
+        run: |
+          for image in ${{ steps.extract-images.outputs.images }}; do
+            echo "Scanning $image..."
+            trivy image --exit-code 0 --severity HIGH,CRITICAL "$image"
+          done
+
+  deploy:
+    needs: security-scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Update kube config
+        run: |
+          echo "${{ secrets.KUBE_CONFIG }}" > kubeconfig
+          export KUBECONFIG=./kubeconfig
+
+      - name: Apply manifests
+        run: |
+          kubectl apply -f manifests/namespace.yaml
+          kubectl apply -f manifests/
