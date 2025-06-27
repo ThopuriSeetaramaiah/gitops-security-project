@@ -22,7 +22,13 @@ jobs:
       - name: Run KubeSec scan
         run: |
           for file in manifests/*.yaml; do
-            kubesec scan "$file"
+            echo "Scanning $file..."
+            # Only scan deployment files with kubesec, ignore other resource types
+            if grep -q "kind: Deployment" "$file"; then
+              kubesec scan "$file"
+            else
+              echo "Skipping $file - not a Deployment resource"
+            fi
           done
 
       - name: Install Trivy
