@@ -109,3 +109,16 @@ After setting up the project:
 - Implement policy enforcement with OPA/Gatekeeper
 - Add compliance checks for specific standards (PCI-DSS, HIPAA, etc.)
 - Implement secret scanning with tools like GitGuardian or TruffleHog
+
+## Important Note About GitHub Actions Workflow
+
+Due to GitHub token permissions, the GitHub Actions workflow file (`.github/workflows/ci-cd.yaml`) needs to be added manually to the repository. You can do this by:
+
+1. Going to your GitHub repository: https://github.com/ThopuriSeetaramaiah/gitops-security-project
+2. Clicking on "Actions" tab
+3. Clicking on "New workflow"
+4. Clicking on "set up a workflow yourself"
+5. Copy the contents of the `.github/workflows/ci-cd.yaml` file from your local repository
+6. Commit the new workflow file
+
+Alternatively, you can update your GitHub token to include the `workflow` scope and then push the workflow file directly.
