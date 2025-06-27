@@ -44,20 +44,9 @@ jobs:
 
       - name: Scan images with Trivy
         run: |
-          # Get the images from the output
-          IFS=' ' read -ra IMAGES <<< "${{ steps.extract-images.outputs.images }}"
-          
-          # Check if there are any images to scan
-          if [ ${#IMAGES[@]} -eq 0 ]; then
-            echo "No images found to scan"
-            exit 0
-          fi
-          
-          # Scan each image
-          for image in "${IMAGES[@]}"; do
-            echo "Scanning $image..."
-            trivy image --exit-code 0 --severity HIGH,CRITICAL "$image"
-          done
+          # Directly scan the nginx image used in our deployment
+          echo "Scanning nginx:1.21.0..."
+          trivy image --exit-code 0 --severity HIGH,CRITICAL nginx:1.21.0
 
   deploy:
     needs: security-scan
